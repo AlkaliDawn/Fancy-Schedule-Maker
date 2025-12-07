@@ -1,0 +1,40 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0;
+  text-align: center;
+    width: 100%;
+    height: 100%;
+    font-family: 'TT Norms', sans-serif;
+}
+
+.sidebar {
+    display: flex;
+    background-color: #b6baff;
+
+    width: 38%;
+    height: 100%;
+    min-height: 100vh;
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    padding: 2em;
+}
+
+.lecture-card {
+    border: 1px solid slategrey;
+    border-radius: 4px;
+    background-color: whitesmoke;
+    box-shadow: 0.15em 0.15em 5px #0000002f;
+
+    width: 100%;
+    display: flex;
+    padding: 0.5em;
+}
+
+.lecture-container {
+    width: 100%;
+    gap: 1em;
+    align-content: center;
+}
