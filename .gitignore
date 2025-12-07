@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+/src/output.pdf
+/src/test.html
+/src/test.json
