@@ -1,10 +1,11 @@
 import {useState} from 'react'
 import {Button, Cascader, Checkbox, Flex, Input, InputNumber, Radio, Select, Space, TimePicker} from 'antd';
 import {PlusOutlined} from '@ant-design/icons';
+import 'public/assets/UofM_Logo.png'
 
 
 const generateSchedule = async (lecture_data) => {
-    const response = await fetch('http://localhost:5000/api/generate-schedule', {
+    const response = await fetch('https://3velynnn.pythonanywhere.com/api/generate-schedule', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -14,7 +15,6 @@ const generateSchedule = async (lecture_data) => {
 
     return await response.json();
 }
-
 const DAYS = Object.freeze({
     MONDAY: 1 << 0,
     TUESDAY: 1 << 1,
