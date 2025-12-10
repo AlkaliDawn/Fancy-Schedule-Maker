@@ -23,4 +23,4 @@ node_modules
 /src/output.pdf
 /src/test.html
 /src/test.json
-/dist/
+/dist/*
