@@ -10,8 +10,8 @@ export default defineConfig({
             output: {
                 assetFileNames: (assetInfo) => {
                     // Keep logo.png without hash
-                    if (assetInfo.name === 'logo.png') {
-                        return 'assets/logo.png'
+                    if (assetInfo.name === 'UofM_Logo.png') {
+                        return 'assets/UofM_Logo.png'
                     }
                     // Everything else gets hashed normally
                     return 'assets/[name]-[hash][extname]'
