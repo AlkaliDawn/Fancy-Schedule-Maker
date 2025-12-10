@@ -1,7 +1,7 @@
 import {useState} from 'react'
 import {Button, Cascader, Checkbox, Flex, Input, InputNumber, Radio, Select, Space, TimePicker} from 'antd';
 import {PlusOutlined} from '@ant-design/icons';
-import '/public/assets/UofM_Logo.png'
+import logo from 'src/images/UofM_Logo.png'
 
 
 const generateSchedule = async (lecture_data) => {
