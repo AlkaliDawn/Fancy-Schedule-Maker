@@ -1,8 +1,6 @@
 import {useState} from 'react'
 import {Button, Cascader, Checkbox, Flex, Input, InputNumber, Radio, Select, Space, TimePicker} from 'antd';
-import {PlusOutlined} from '@ant-design/icons';
-import logo from './images/UofM_Logo.png'
-
+import {FilePdfFilled, PlusOutlined} from '@ant-design/icons';
 
 const generateSchedule = async (lecture_data) => {
     const response = await fetch('https://3velynnn.pythonanywhere.com/api/generate-schedule', {
@@ -159,6 +157,7 @@ function Render_Schedule({ schedule_html }) {
     )
 }
 
+
 function App() {
     const [lectures, setLectures] = useState([
         {
@@ -216,6 +215,33 @@ function App() {
         }
     }
 
+    const handleDownloadPDF = async () => {
+        const res = await fetch(
+            'https://3velynnn.pythonanywhere.com/api/retrieve_pdf',
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(lectures),
+            }
+        );
+
+        if (!res.ok) {
+            throw new Error('Failed to download PDF');
+        }
+
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'schedule.pdf';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        setTimeout(() => URL.revokeObjectURL(url), 0);
+    };
+
     return (
         <div style={{ display: 'flex', height: '100vh' }}>
             <div className='sidebar' style={{ width: '400px', padding: '20px', overflowY: 'auto' }}>
@@ -232,6 +258,9 @@ function App() {
                     </Button>
                     <Button type="primary" onClick={handleGenerateSchedule}>
                         Generate Schedule
+                    </Button>
+                    <Button onClick={handleDownloadPDF}>
+                        Download as PDF <FilePdfFilled />
                     </Button>
                 </Flex>
             </div>

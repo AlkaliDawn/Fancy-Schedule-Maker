@@ -5,122 +5,7 @@ WEDNESDAY = 1 << 2  # 0b00100 = 4
 THURSDAY = 1 << 3   # 0b01000 = 8
 FRIDAY = 1 << 4     # 0b10000 = 16
 
-class Timetable:
-    def __init__(self, *lectures):
-        self.lectures = lectures
-
-class Lecture:
-    def __init__(self, time, length, lecture_title, lecture_location, days, color, is_lab):
-        self.time = time
-        self.length = length
-        self.lecture_title = lecture_title
-        self.lecture_location = lecture_location
-        self.days = days
-        self.color = color # PINK, PURPLE, GREEN, LIGHT_GREEN, BLUE, YELLOW, TEAL
-        self.is_lab = is_lab
-
-    def is_at_time(self, current_time):
-        return self.time == current_time
-
-    def spans_time(self, current_time):
-        # Check if this lecture is happening at current_time
-        return self.time <= current_time < self.time + self.length
-
-def div_card(lecture):
-    return f"""<div class="class-card">
-    <div class="course-name">{lecture.lecture_title}</div>
-    <div class="course-number">{"<br/><i>LAB" if lecture.is_lab else "<br/><i>"}</div>
-    <div class="location">{lecture.lecture_location}</i></div>
-    </div>"""
-
-def empty_card():
-    return """<div class="class-card"></div>"""
-
-def generate_table(lectures):
-    table_contents = ""
-
-    # Find time range
-    first_class_time = min(lecture.time for lecture in lectures) - 0.5
-    last_class_end = max(lecture.time + lecture.length for lecture in lectures) + 0.5
-
-    day_length = last_class_end - first_class_time
-    day_start = first_class_time
-
-    # Generate rows for each 30-minute block
-    for row in range(int(2*day_length)):
-        current_time = day_start + row / 2
-        table_contents += f'<tr><td class="class-card time-cell"><div class="top-time">'
-
-        is_bold = False
-        if current_time == first_class_time or current_time == 12 or current_time == last_class_end:
-            is_bold = True
-
-        if is_bold:
-            table_contents += f'<b>'
-        # Format time display
-        if current_time < 13:
-            display_time = f"{int(current_time - current_time % 1)}:{"30" if current_time % 1 != 0 else "00"} {"AM" if current_time == first_class_time else ""}{"PM" if current_time == 12 else ""}"
-        else:
-            display_time = f"{int((current_time - 12) - current_time % 1)}:{"30" if current_time % 1 != 0 else "00"}"
-
-        table_contents += f'{display_time}</div><br/>'
-
-        if is_bold:
-            table_contents += f'</b>'
-
-        table_contents += f'<div class="bottom-time">'
-
-        current_time += 0.5
-        if current_time < 13:
-            display_time = f"{int(current_time - current_time % 1)}:{"30" if current_time % 1 != 0 else "00"}"
-        else:
-            display_time = f"{int((current_time - 12) - current_time % 1)}:{"30" if current_time % 1 != 0 else "00"}"
-        table_contents += f'{display_time}</div></td>'
-        current_time -= 0.5
-
-        # Iterate over days of the week
-        for day_bit in range(5):
-            found_lecture = False
-            for lecture in lectures:
-                # Check if lecture is on this day and at this time
-                if (lecture.days & (1 << day_bit)) != 0 and lecture.is_at_time(current_time):
-                    table_contents += f'<td rowspan="{int(lecture.length * 2)}" class="{lecture.color}">{div_card(lecture)}</td>'
-                    found_lecture = True
-                    break
-
-            if not found_lecture:
-                # Check if we're in the middle of a lecture (don't add cell due to rowspan)
-                in_lecture = False
-                for lecture in lectures:
-                    if (lecture.days & (1 << day_bit)) != 0 and lecture.spans_time(current_time) and not lecture.is_at_time(current_time):
-                        in_lecture = True
-                        break
-
-                if not in_lecture:
-                    table_contents += f'<td class="empty-cell">{empty_card()}</td>'
-
-        table_contents += "</tr>"
-
-    table = f"""
-        <table class="timetable">
-            <thead>
-                <tr class="table-header-row">
-                    <th>Time</th>
-                    <th>Monday</th>
-                    <th>Tuesday</th>
-                    <th>Wednesday</th>
-                    <th>Thursday</th>
-                    <th>Friday</th>
-                </tr>
-            </thead>
-            <tbody> {table_contents}
-            </tbody>
-        </table>
-        """
-    return table
-
-def get_html(table):
-    css = """@font-face {
+css = """@font-face {
     font-family: 'Kudryashev Display';
     src: url('fonts/KudryashevDisplay.ttf') format('truetype');
     font-weight: normal;
@@ -285,98 +170,169 @@ def get_html(table):
     }
           """
 
+class Timetable:
+    def __init__(self, *lectures):
+        self.lectures = lectures
 
-    return f"""
-    <style>{css}</style>
-    <body>
-        <div class="page-container" id="color-border">
-            <div class="background" id="white-area">
-                <div class="page-header-row">
-                    <div class="large-text">Winter 2025</div>
-                    <img src='/assets/UofM_Logo.png'></img>
+class Lecture:
+    def __init__(self, time, length, lecture_title, lecture_location, days, color, is_lab):
+        self.time = time
+        self.length = length
+        self.lecture_title = lecture_title
+        self.lecture_location = lecture_location
+        self.days = days
+        self.color = color # PINK, PURPLE, GREEN, LIGHT_GREEN, BLUE, YELLOW, TEAL
+        self.is_lab = is_lab
+
+    def is_at_time(self, current_time):
+        return self.time == current_time
+
+    def spans_time(self, current_time):
+        # Check if this lecture is happening at current_time
+        return self.time <= current_time < self.time + self.length
+
+def div_card(lecture):
+    return f"""<div class="class-card">
+    <div class="course-name">{lecture.lecture_title}</div>
+    <div class="course-number">{"<br/><i>LAB" if lecture.is_lab else "<br/><i>"}</div>
+    <div class="location">{lecture.lecture_location}</i></div>
+    </div>"""
+
+def empty_card():
+    return """<div class="class-card"></div>"""
+
+def generate_table(lectures):
+    table_contents = ""
+
+    # Find time range
+    first_class_time = min(lecture.time for lecture in lectures) - 0.5
+    last_class_end = max(lecture.time + lecture.length for lecture in lectures) + 0.5
+
+    day_length = last_class_end - first_class_time
+    day_start = first_class_time
+
+    # Generate rows for each 30-minute block
+    for row in range(int(2*day_length)):
+        current_time = day_start + row / 2
+        table_contents += f'<tr><td class="class-card time-cell"><div class="top-time">'
+
+        is_bold = False
+        if current_time == first_class_time or current_time == 12 or current_time == last_class_end:
+            is_bold = True
+
+        if is_bold:
+            table_contents += f'<b>'
+        # Format time display
+        if current_time < 13:
+            display_time = f"{int(current_time - current_time % 1)}:{"30" if current_time % 1 != 0 else "00"} {"AM" if current_time == first_class_time else ""}{"PM" if current_time == 12 else ""}"
+        else:
+            display_time = f"{int((current_time - 12) - current_time % 1)}:{"30" if current_time % 1 != 0 else "00"}"
+
+        table_contents += f'{display_time}</div><br/>'
+
+        if is_bold:
+            table_contents += f'</b>'
+
+        table_contents += f'<div class="bottom-time">'
+
+        current_time += 0.5
+        if current_time < 13:
+            display_time = f"{int(current_time - current_time % 1)}:{"30" if current_time % 1 != 0 else "00"}"
+        else:
+            display_time = f"{int((current_time - 12) - current_time % 1)}:{"30" if current_time % 1 != 0 else "00"}"
+        table_contents += f'{display_time}</div></td>'
+        current_time -= 0.5
+
+        # Iterate over days of the week
+        for day_bit in range(5):
+            found_lecture = False
+            for lecture in lectures:
+                # Check if lecture is on this day and at this time
+                if (lecture.days & (1 << day_bit)) != 0 and lecture.is_at_time(current_time):
+                    table_contents += f'<td rowspan="{int(lecture.length * 2)}" class="{lecture.color}">{div_card(lecture)}</td>'
+                    found_lecture = True
+                    break
+
+            if not found_lecture:
+                # Check if we're in the middle of a lecture (don't add cell due to rowspan)
+                in_lecture = False
+                for lecture in lectures:
+                    if (lecture.days & (1 << day_bit)) != 0 and lecture.spans_time(current_time) and not lecture.is_at_time(current_time):
+                        in_lecture = True
+                        break
+
+                if not in_lecture:
+                    table_contents += f'<td class="empty-cell">{empty_card()}</td>'
+
+        table_contents += "</tr>"
+
+    table = f"""
+        <table class="timetable">
+            <thead>
+                <tr class="table-header-row">
+                    <th>Time</th>
+                    <th>Monday</th>
+                    <th>Tuesday</th>
+                    <th>Wednesday</th>
+                    <th>Thursday</th>
+                    <th>Friday</th>
+                </tr>
+            </thead>
+            <tbody> {table_contents}
+            </tbody>
+        </table>
+        """
+    return table
+
+def get_html(table, include_css: bool | None = True):
+    if include_css:
+        return f"""
+        <style>{css}</style>
+        <body>
+            <div class="page-container" id="color-border">
+                <div class="background" id="white-area">
+                    <div class="page-header-row">
+                        <div class="large-text">Winter 2025</div>
+                        <img src='/assets/UofM_Logo.png'></img>
+                    </div>
+                    {table}
                 </div>
-                {table}
             </div>
-        </div>
-    </body>
-    """
+        </body>
+        """
+    else:
+        return f"""
+        <body>
+            <div class="page-container" id="color-border">
+                <div class="background" id="white-area">
+                    <div class="page-header-row">
+                        <div class="large-text">Winter 2025</div>
+                        <img src='/assets/UofM_Logo.png'></img>
+                    </div>
+                    {table}
+                </div>
+            </div>
+        </body>
+        """
 
 
-import os
-import sys
-from PySide6.QtWidgets import QApplication
-from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtCore import QUrl, QEventLoop, QTimer, QByteArray
+from weasyprint import HTML, CSS
+from weasyprint.text.fonts import FontConfiguration
 
-def render_html_to_pdf(html: str, output_path: str, viewport_size: tuple | None = (1024, 768), timeout_ms: int = 15000) -> str:
-    """
-    Render `html` to `output_path` (PDF) using QWebEngineView in a one-shot call.
+def get_pdf_bytes(lectures, viewport_size: tuple | None = (1024, 768)):
+    """Render HTML to PDF using WeasyPrint."""
+    font_config = FontConfiguration()
 
-    Returns the output_path on success, raises RuntimeError on failure.
-    """
-    app = QApplication.instance() or QApplication(sys.argv)
+    table = generate_table(lectures)
+    html = get_html(table, False)
 
-    view = QWebEngineView()
-    if viewport_size:
-        view.resize(*viewport_size)
+    html_parsed = HTML(string=html)
+    css_parsed = CSS(string=css, font_config=font_config)
 
-    loop = QEventLoop()
-    result = {"ok": False, "error": None}
+    result = html_parsed.write_pdf(None, font_config=font_config, stylesheets=[css_parsed, CSS(string=f'@page {{ size: {viewport_size[0]}px {viewport_size[1]}px; }}')])
+    return result
 
-    def on_pdf_written(success: bool):
-        result["ok"] = success
-        loop.quit()
-
-    def pdf_callback(data):
-        # Qt may pass QByteArray or bytes depending on bindings. Normalize to bytes.
-        try:
-            if isinstance(data, QByteArray):
-                b = bytes(data)
-            else:
-                b = data
-            with open(output_path, "wb") as f:
-                f.write(b)
-            on_pdf_written(True)
-        except Exception as e:
-            result["error"] = f"write_error: {e}"
-            on_pdf_written(False)
-
-    def on_load_finished(ok: bool):
-        if not ok:
-            result["error"] = "page_load_failed"
-            loop.quit()
-            return
-        # one-shot: request PDF and wait for callback
-        # QWebEnginePage.printToPdf(callback) -> callback receives QByteArray (pdf bytes)
-        view.page().printToPdf(pdf_callback)
-
-    view.loadFinished.connect(on_load_finished)
-
-    # Start a timeout in case something hangs
-    timer = QTimer()
-    timer.setSingleShot(True)
-    def on_timeout():
-        result["error"] = "timeout"
-        loop.quit()
-    timer.timeout.connect(on_timeout)
-    timer.start(timeout_ms)
-
-    base_dir = os.getcwd()
-    base_url = QUrl.fromLocalFile(base_dir + os.sep)
-
-
-    # Load the HTML
-    view.setHtml(html, base_url)
-
-    # enter local event loop until PDF callback or timeout
-    loop.exec_()
-
-    if not result["ok"]:
-        raise RuntimeError(f"PDF rendering failed: {result['error']}")
-    return output_path
-
-def process_lectures(Lectures):
-    table = generate_table(Lectures)
+def process_lectures(lectures):
+    table = generate_table(lectures)
     html_output = get_html(table)
     return html_output
-    # render_html_to_pdf(html_output, "output.pdf", viewport_size=(1200, 900))
