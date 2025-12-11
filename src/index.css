@@ -15,14 +15,14 @@
 
 @font-face {
     font-family: 'Kudryashev Display';
-    src: url('fonts/KudryashevDisplay.ttf') format('truetype');
+    src: url('https://3velynnn.com/KudryashevDisplay.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
 }
 
 @font-face {
     font-family: 'TT Norms';
-    src: url('fonts/TTNormsProVariable.ttf') format('truetype');
+    src: url('https://3velynnn.com/TTNormsProVariable.ttf') format('truetype');
     font-weight: 100 900;
     font-style: normal;
 }

@@ -7,14 +7,14 @@ FRIDAY = 1 << 4     # 0b10000 = 16
 
 css = """@font-face {
     font-family: 'Kudryashev Display';
-    src: url('fonts/KudryashevDisplay.ttf') format('truetype');
+    src: url('https://3velynnn.com/KudryashevDisplay.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
     }
     
     @font-face {
         font-family: 'TT Norms';
-        src: url('fonts/TTNormsProVariable.ttf') format('truetype');
+        src: url('https://3velynnn.com/TTNormsProVariable.ttf') format('truetype');
         font-weight: 100 900;
         font-style: normal;
     }
@@ -293,7 +293,7 @@ def get_html(table, include_css: bool | None = True):
                 <div class="background" id="white-area">
                     <div class="page-header-row">
                         <div class="large-text">Winter 2025</div>
-                        <img src='/assets/UofM_Logo.png'></img>
+                        <img src='https://3velynnn.com/UofM_Logo.png'></img>
                     </div>
                     {table}
                 </div>
@@ -307,7 +307,7 @@ def get_html(table, include_css: bool | None = True):
                 <div class="background" id="white-area">
                     <div class="page-header-row">
                         <div class="large-text">Winter 2025</div>
-                        <img src='/assets/UofM_Logo.png'></img>
+                        <img src='https://3velynnn.com/UofM_Logo.png'></img>
                     </div>
                     {table}
                 </div>
