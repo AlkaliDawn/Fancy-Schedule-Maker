@@ -142,7 +142,6 @@ function LectureCard({ lecture, onUpdate }) {
                 optionFilterProp='label'
                 placeholder="Select a colour"
                 options={colorOptions}
-                value={lecture.color}
                 onChange={(value) => onUpdate({ ...lecture, color: value })}
             />
         </Flex>
@@ -217,7 +216,7 @@ function App() {
 
     const handleDownloadPDF = async () => {
         const res = await fetch(
-            'https://3velynnn.pythonanywhere.com/api/retrieve_pdf',
+            'https://3velynnn.pythonanywhere.com/api/retrieve_png',
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -226,7 +225,7 @@ function App() {
         );
 
         if (!res.ok) {
-            throw new Error('Failed to download PDF');
+            throw new Error('Failed to download PNG');
         }
 
         const blob = await res.blob();
@@ -234,7 +233,7 @@ function App() {
 
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'schedule.pdf';
+        a.download = 'schedule.png';
         document.body.appendChild(a);
         a.click();
         a.remove();

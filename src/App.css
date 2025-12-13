@@ -8,9 +8,17 @@
     font-family: 'TT Norms', sans-serif;
 }
 
+#root {
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+    scrollbar-width: none;  /* Firefox, Safari 18.2+, Chromium 121+ */
+}
+#root::-webkit-scrollbar {
+    display: none;  /* Older Safari and Chromium */
+}
+
 .sidebar {
     display: flex;
-    background-color: #b6baff;
+    background: radial-gradient(circle at 140% 60%, rgb(195, 140, 125) 10%, rgb(200, 159, 127) 100%);
 
     width: 38%;
     height: 100%;
@@ -38,3 +46,4 @@
     gap: 1em;
     align-content: center;
 }
+

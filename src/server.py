@@ -3,7 +3,7 @@
 import io
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
-from render_script import process_lectures, get_pdf_bytes
+from render_script import process_lectures, get_png_bytes
 from render_script import Lecture
 
 app = Flask(__name__)
@@ -37,21 +37,25 @@ def generate_schedule():
 
     return jsonify(result)
 
-@app.route('/api/retrieve_pdf', methods=['POST'])
+
+from playwright.sync_api import sync_playwright
+
+@app.route('/api/retrieve_png', methods=['POST'])
 def get_pdf():
     raw_lecture_data = request.json
     mapped_lecture_data = map_lecture_data(raw_lecture_data)
 
-    pdf_bytes = get_pdf_bytes(mapped_lecture_data)
+    with sync_playwright() as playwright:
+        png_bytes = get_png_bytes(mapped_lecture_data, playwright)
 
-    buffer = io.BytesIO(pdf_bytes)
+    buffer = io.BytesIO(png_bytes)
     buffer.seek(0)
 
     return send_file(
         buffer,
-        mimetype="application/pdf",
+        mimetype="application/png",
         as_attachment=True,
-        download_name="schedule.pdf"
+        download_name="schedule.png"
     )
 
 if __name__ == '__main__':

@@ -11,53 +11,53 @@ css = """@font-face {
     font-weight: normal;
     font-style: normal;
     }
-    
+
     @font-face {
         font-family: 'TT Norms';
         src: url('https://3velynnn.com/TTNormsProVariable.ttf') format('truetype');
         font-weight: 100 900;
         font-style: normal;
     }
-    
-    
+
+
     html, body {
         height: 100%;
         margin: 0;
         padding: 0;
     }
-    
+
     body {
         display: flex;
         justify-content: center; /* horizontal centering */
         align-items: center; /* vertical centering */
     }
-    
+
     div.large-text {
         font-family: 'Kudryashev Display', serif;
         text-shadow: 0.9px 0.5px 1.6px #0000003f;
         font-size: 80px;
     }
-    
+
     .timetable {
         width: 100%;
         table-layout: fixed;
-    
+
         border-spacing: 2.3px;
         border-collapse: separate;
-    
+
         letter-spacing: 1.23px;
         font-family: 'TT Norms', serif;
         font-size: 9.5pt;
     }
-    
+
     .timetable .table-header-row th:not(:first-child) {
         text-align: center;
     }
-    
+
     .timetable .table-header-row th:first-child {
         width: 12%;
     }
-    
+
     .time-cell {
         font-size: 10.2pt;
         padding: 0px !important;
@@ -65,14 +65,14 @@ css = """@font-face {
         letter-spacing: 1.45px;
         line-height: 1.7;
     }
-    
+
     .timetable th {
         border: 1.3px solid #b2b2b2;
         color: #100009;
         background-color: #f1d7c0;
         font-weight: 400;
     }
-    
+
     .timetable td {
         display: table-cell;
         color: #100009;
@@ -83,7 +83,7 @@ css = """@font-face {
         border: 1.3px solid #b2b2b2;
         text-align: center;
     }
-    
+
     .class-card {
         display: flex;
         flex-direction: column;
@@ -95,58 +95,58 @@ css = """@font-face {
         box-sizing: border-box;
         font-weight: 395;
     }
-    
+
     .top-time, .bottom-time {
         float: right;
     }
-    
+
     .top-time {
-    
+
     }
-    
+
     tr {
         height: 50px;
     }
-    
+
     .GREEN {
         background: radial-gradient(circle at 0% 0%, #dcff98 0%, #1bbc77 100%);
     }
-    
+
     .PINK {
         background: radial-gradient(circle at 0% 0%, #ff6b7f 0%, #c12489 100%);
     }
-    
+
     .PURPLE {
         background: radial-gradient(circle at 0% 0%, #ff9ae2 0%, #8d42d7 100%);
     }
-    
+
     .LIGHT_GREEN {
         background: radial-gradient(circle at 0% 0%, #eeff81 0%, #5fa61a 100%);
     }
-    
+
     .TEAL {
         background: radial-gradient(circle at 0% 0%, #71ffbb 0%, #009ba1 100%);
     }
-    
+
     .YELLOW {
         background: radial-gradient(circle at 0% 0%, #e1ac70 0%, #fffd88 100%);
     }
-    
+
     .BLUE {
         background: radial-gradient(circle at 0% 0%, #adf1ff 0%, #2b53ff 100%);
     }
-    
+
     #color-border {
         width: 730px;
         background-color: #eee6db;
         padding: 20px;
     }
-    
+
     #white-area {
         background-color: #ffffff;
         padding: 20px;
     }
-    
+
     .page-header-row {
         display: flex;
         justify-content: space-between;
@@ -154,16 +154,16 @@ css = """@font-face {
         align-items: center;
         margin-bottom: 20px;
     }
-    
-    
+
+
     img {
         max-height: 120px;
     }
-    
+
     .empty-cell {
         background: #ffffff;
     }
-    
+
     /* Make sure empty cell divs fill completely */
     .empty-cell .class-card {
         min-height: 100%;
@@ -284,53 +284,38 @@ def generate_table(lectures):
         """
     return table
 
-def get_html(table, include_css: bool | None = True):
-    if include_css:
-        return f"""
-        <style>{css}</style>
-        <body>
-            <div class="page-container" id="color-border">
-                <div class="background" id="white-area">
-                    <div class="page-header-row">
-                        <div class="large-text">Winter 2025</div>
-                        <img src='https://3velynnn.com/UofM_Logo.png'></img>
-                    </div>
-                    {table}
+def get_html(table):
+    return f"""
+    <style>{css}</style>
+    <body>
+        <div class="page-container" id="color-border">
+            <div class="background" id="white-area">
+                <div class="page-header-row">
+                    <div class="large-text">Winter 2025</div>
+                    <img src='https://3velynnn.com/UofM_Logo.png'></img>
                 </div>
+                {table}
             </div>
-        </body>
-        """
-    else:
-        return f"""
-        <body>
-            <div class="page-container" id="color-border">
-                <div class="background" id="white-area">
-                    <div class="page-header-row">
-                        <div class="large-text">Winter 2025</div>
-                        <img src='https://3velynnn.com/UofM_Logo.png'></img>
-                    </div>
-                    {table}
-                </div>
-            </div>
-        </body>
-        """
+        </div>
+    </body>
+    """
 
 
-from weasyprint import HTML, CSS
-from weasyprint.text.fonts import FontConfiguration
+from playwright.sync_api import Playwright
 
-def get_pdf_bytes(lectures, viewport_size: tuple | None = (1024, 768)):
-    """Render HTML to PDF using WeasyPrint."""
-    font_config = FontConfiguration()
+def get_png_bytes(lectures, playwright: Playwright):
 
     table = generate_table(lectures)
-    html = get_html(table, False)
+    html = get_html(table)
 
-    html_parsed = HTML(string=html)
-    css_parsed = CSS(string=css, font_config=font_config)
+    browser = playwright.chromium.launch(
+        executable_path="/usr/bin/chromium",
+        args=["--disable-gpu", "--no-sandbox", "--headless"]
+    )
+    page = browser.new_page()
 
-    result = html_parsed.write_pdf(None, font_config=font_config, stylesheets=[css_parsed, CSS(string=f'@page {{ size: {viewport_size[0]}px {viewport_size[1]}px; }}')])
-    return result
+    page.set_content(html)
+    return page.locator(".page-container").screenshot()
 
 def process_lectures(lectures):
     table = generate_table(lectures)
