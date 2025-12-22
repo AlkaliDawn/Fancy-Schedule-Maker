@@ -1,4 +1,6 @@
 import {useState} from 'react'
+import {useEffect} from 'react';
+
 import {
     Button,
     Cascader,
@@ -10,13 +12,17 @@ import {
     InputNumber,
     Radio,
     Select,
-    Space, Switch,
-    TimePicker
+    Space,
+    Switch,
+    Slider,
+    TimePicker,
+    Col,
+    Row
 } from 'antd';
-import {FileImageOutlined, PlusOutlined, SettingOutlined} from '@ant-design/icons';
+import {CloseOutlined, FileImageOutlined, PlusOutlined, SettingOutlined} from '@ant-design/icons';
 
 import domtoimage from 'dom-to-image-more';
-
+import dayjs from 'dayjs';
 
 import './App.css'; import './render.css'
 import ScheduleComponent from './render.jsx';
@@ -60,6 +66,15 @@ function SettingsMenu({open, onClose, renderOptions, setRenderOptions}) {
         {label: '2031', value: 2031},
     ]
 
+    const [inputValue, setInputValue] = useState(3);
+
+    const onChange = (value) => {
+        if (Number.isNaN(value)) {
+            return;
+        }
+        setInputValue(value);
+        setRenderOptions({...renderOptions, quality_multiplier: value});
+    };
     const [startPadDisabled, setStartPadDisabled] = useState(true);
     const [endPadDisabled, setEndPadDisabled] = useState(true);
 
@@ -100,6 +115,29 @@ function SettingsMenu({open, onClose, renderOptions, setRenderOptions}) {
             {/*    style={{width:'33%'}}*/}
             {/*    />*/}
             {/*<br/><br/>*/}
+            <span style={{lineHeight: "1vh"}}> Image Download Quality: <span style={{ color: "#d0bbbb", fontSize: "10px"}}><br/>(Warning: Higher values may rapidly increase file size)</span></span>
+            <Row>
+                <Col span={12}>
+                    <Slider
+                        min={0.5}
+                        max={5}
+                        onChange={onChange}
+                        value={inputValue}
+                        step={0.1}
+                    />
+                </Col>
+                <Col span={4}>
+                    <InputNumber
+                        min={0}
+                        max={5}
+                        style={{ margin: '0 16px' }}
+                        step={0.1}
+                        value={inputValue}
+                        onChange={onChange}
+                    />
+                </Col>
+            </Row>
+            <br/><br/>
             Padding at Start of Day:
             <br/>
 
@@ -141,7 +179,7 @@ function SettingsMenu({open, onClose, renderOptions, setRenderOptions}) {
     )
 }
 
-function LectureCard({ lecture, onUpdate }) {
+function LectureCard({ lecture, onUpdate, deleteLecture }) {
     const lectureTypeOptions = [
         { label: 'Lecture', value: 'Lecture' },
         { label: 'Tutorial', value: 'Tutorial' },
@@ -156,7 +194,6 @@ function LectureCard({ lecture, onUpdate }) {
     ];
 
     const colorOptions = [
-        { label: 'Red', value: 'RED' },
         { label: 'Green', value: 'GREEN' },
         { label: 'Pink', value: 'PINK' },
         { label: 'Purple', value: 'PURPLE' },
@@ -186,11 +223,29 @@ function LectureCard({ lecture, onUpdate }) {
         });
     }
 
+    const getTimeValue = () => {
+        let array = [];
+        if (lecture.start >= 0 && lecture.duration > 0) {
+            const startHour = Math.floor(lecture.start);
+            const startMinute = (lecture.start % 1) === 0.5 ? 30 : 0;
+            const endTime = lecture.start + lecture.duration;
+            const endHour = Math.floor(endTime);
+            const endMinute = (endTime % 1) === 0.5 ? 30 : 0;
+
+            const startMoment = dayjs().hour(startHour).minute(startMinute).second(0);
+            const endMoment = dayjs().hour(endHour).minute(endMinute).second(0);
+
+            array = [startMoment, endMoment];
+        }
+        return array;
+    }
+
     return (
         <Flex className='lecture-card' vertical justify='flex-start' gap={4}>
-            <p style={{ margin: 0, fontWeight: 470 }}>
+            <div style={{ margin: 0, fontWeight: 470 }}>
                 {lecture.isLab ? "Tutorial" : "Lecture"} {lecture.id}
-            </p>
+            </div>
+            <button style={{ background: "inherit", position: "absolute", top: 8, right: 12, padding: 2 }} onClick={deleteLecture}><CloseOutlined /></button>
             <Radio.Group
                 block
                 options={lectureTypeOptions}
@@ -229,6 +284,7 @@ function LectureCard({ lecture, onUpdate }) {
                             class_location: (lecture.building || '') + " " + value
                         });
                     }}
+                    value={lecture.roomNumber === 0 ? null : lecture.roomNumber}
                 />
             </Space.Compact>
             <Checkbox.Group
@@ -246,6 +302,7 @@ function LectureCard({ lecture, onUpdate }) {
                 minuteStep={30}
                 showNow={false}
                 onChange={timeChangeHandler}
+                value={getTimeValue()}
             />
             <Select
                 showSearch
@@ -253,6 +310,7 @@ function LectureCard({ lecture, onUpdate }) {
                 placeholder="Select a colour"
                 options={colorOptions}
                 onChange={(value) => onUpdate({ ...lecture, color: value })}
+                value={lecture.color === '' ? null : lecture.color}
             />
         </Flex>
     )
@@ -260,53 +318,45 @@ function LectureCard({ lecture, onUpdate }) {
 
 
 function App() {
-    const [lectures, setLectures] = useState([
-        {
-            id: 1,
-            class_name: '',
-            class_location: '',
-            building: '',
-            roomNumber: 0,
-            start: 0,
-            duration: 1,
-            days: 0,
-            color: '',
-            isLab: false
-        }
-    ])
+    const LECTURES_KEY = 'schedule_lectures';
+    const OPTIONS_KEY = 'schedule_render_options';
 
+    const lecturesDefault = {
+        id: 1,
+        class_name: '',
+        class_location: '',
+        building: '',
+        roomNumber: 0,
+        start: -1,
+        duration: -1,
+        days: 0,
+        color: '',
+        isLab: false
+    };
+
+    const [lectures, setLectures] = useState(() => {
+        const saved = sessionStorage.getItem(LECTURES_KEY);
+        return saved
+            ? JSON.parse(saved)
+            : [lecturesDefault];
+    });
+
+    // Add a new lecture with default values and unique ID using max ID + 1
     const addLecture = () => {
         const newId = lectures.length > 0
             ? Math.max(...lectures.map(l => l.id)) + 1
-            : 1
+            : 1;
 
-        setLectures([...lectures, {
-            id: newId,
-            class_name: '',
-            class_location: '',
-            building: '',
-            roomNumber: 0,
-            start: 0,
-            duration: 1,
-            days: 0,
-            color: '',
-            isLab: false
-        }])
+        const newLecture = { ...lecturesDefault, id: newId };
+        setLectures([...lectures, newLecture]);
     }
 
+    // Delete lecture by ID using filter
+    const deleteLecture = (id) => {
+        setLectures(lectures.filter(lec => lec.id !== id));
+    }
 
-    const [open, setOpen] = useState(false);
-
-    const showDrawer = () => {
-        setOpen(true);
-    };
-
-    const onClose = () => {
-        setOpen(false);
-    };
-
-    const [preview_schedule, setPreviewSchedule] = useState(null)
-
+    // Update lecture by replacing it with updatedLecture
     const updateLecture = (updatedLecture) => {
         setLectures(lectures.map(lec =>
             lec.id === updatedLecture.id ? updatedLecture : lec
@@ -314,28 +364,49 @@ function App() {
         console.log("Updated Lecture:");
     }
 
-    const [renderOptions, setRenderOptions] = useState({
-        pad_start_amt: 0,
-        pad_end_amt: 0,
-        do_pad_end: false,
-        do_pad_start: false,
-        semester: 'Winter',
-        year: 2026,
-        font_weight: 395,
-        schedule_width: 730,
-        show_bottom_time_labels: true,
-        time_format_24h: false,
+    // Save lectures to session storage whenever they change
+    useEffect(() => {
+        sessionStorage.setItem(LECTURES_KEY, JSON.stringify(lectures));
+    }, [lectures]);
+
+
+    // --------- RENDER OPTIONS STATE ---------
+    const [renderOptions, setRenderOptions] = useState(() => {
+        const saved = sessionStorage.getItem(OPTIONS_KEY);
+        return saved
+            ? JSON.parse(saved)
+            : {
+                pad_start_amt: 0,
+                pad_end_amt: 0,
+                do_pad_end: false,
+                do_pad_start: false,
+                semester: 'Winter',
+                year: 2026,
+                font_weight: 395,
+                schedule_width: 730,
+                show_bottom_time_labels: true,
+                time_format_24h: false,
+                quality_multiplier: 3
+            };
     });
 
+    // Save render options to session storage whenever they change
+    useEffect(() => {
+        sessionStorage.setItem(OPTIONS_KEY, JSON.stringify(renderOptions));
+    }, [renderOptions]);
+
+
+    // --------- DOWNLOAD AS PNG FUNCTIONALITY ---------
     const handleDownloadPNG = async () => {
         const node = document.getElementsByClassName('preview')[0].children[0];
-        const scale = 3;
+        const scale = renderOptions.quality_multiplier;
 
         const width = node.offsetWidth;
         const height = node.offsetHeight;
 
         await document.fonts.ready;
 
+        // Use dom-to-image-more to capture the node as a PNG
         domtoimage.toBlob(node, {
             width: width * scale,
             height: height * scale,
@@ -345,7 +416,7 @@ function App() {
                 width: `${width}px`,
                 height: `${height}px`,
             },
-        }).then(blob => {
+        }).then(blob => { // Create a download link and trigger the download
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -353,6 +424,20 @@ function App() {
             a.click();
             URL.revokeObjectURL(url);
         });
+    };
+
+    // State for preview schedule, where preview_schedule is a JSX element containing the rendered schedule
+    const [preview_schedule, setPreviewSchedule] = useState(null)
+
+    // --------- DRAWER STATE ---------
+    const [open, setOpen] = useState(false);
+
+    const showDrawer = () => {
+        setOpen(true);
+    };
+
+    const onClose = () => {
+        setOpen(false);
     };
 
     return (
@@ -371,6 +456,7 @@ function App() {
                             key={lecture.id}
                             lecture={lecture}
                             onUpdate={updateLecture}
+                            deleteLecture={() => deleteLecture(lecture.id)}
                         />
                     ))}
                     <Button onClick={addLecture}>

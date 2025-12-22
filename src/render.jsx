@@ -23,6 +23,15 @@ function ScheduleComponent({lectures, options}) {
         )
     }
 
+    let sanitized_lectures = [];
+
+    for (let lecture of lectures) {
+        if (Number.isFinite(lecture.start) && lecture.start > 0 && Number.isFinite(lecture.duration) && lecture.duration > 0) {
+            // valid lecture
+            sanitized_lectures.push(lecture);
+        }
+    }
+
     let format_time = (current_time, is_bold) => {
         let hours = (Math.floor(current_time) % 12) === 0 ? 12 : Math.floor(current_time % 12);
         let mins = current_time % 1 === 0 ? "00" : "30"
@@ -35,8 +44,8 @@ function ScheduleComponent({lectures, options}) {
     const end_padding = (options.do_pad_end ? options.pad_end_amt : 0);
     const start_padding = (options.do_pad_start ? options.pad_start_amt : 0);
 
-    let day_start = lectures.length ? Math.max(0, Math.min(...lectures.map(l => l.start)) - start_padding) : 0;
-    let day_length = (lectures.length ? Math.max(...lectures.map(l => l.start + l.duration)) + end_padding : 0.5) - day_start;
+    let day_start = sanitized_lectures.length ? Math.max(0, Math.min(...sanitized_lectures.map(l => l.start)) - start_padding) : 0;
+    let day_length = (sanitized_lectures.length ? Math.max(...sanitized_lectures.map(l => l.start + l.duration)) + end_padding : 0.5) - day_start;
 
     let range = n => [...Array(n).keys()];
 
@@ -72,7 +81,7 @@ function ScheduleComponent({lectures, options}) {
         for (let day_bit of range(5)) {
             let cell_obj = null;
             let found_lecture = false;
-            for (let lecture of lectures) {
+            for (let lecture of sanitized_lectures) {
                 if (lecture.days & (1 << day_bit) && lecture.start === current_time) {
                     cell_obj = {
                         type: "lecture",
@@ -86,7 +95,7 @@ function ScheduleComponent({lectures, options}) {
 
             if (!found_lecture) {
                 let in_lecture_span = false;
-                for (let lecture of lectures) {
+                for (let lecture of sanitized_lectures) {
                     if (lecture.days & (1 << day_bit) &&
                         lecture.start < current_time &&
                         lecture.start + lecture.duration > current_time) {

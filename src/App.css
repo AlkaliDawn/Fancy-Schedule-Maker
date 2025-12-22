@@ -17,24 +17,27 @@
 
 .sidebar {
     display: flex;
-    background: radial-gradient(circle at 140% 60%, rgb(195, 140, 125) 10%, rgb(200, 159, 127) 100%);
 
     width: 38%;
     height: 100%;
     min-height: 100vh;
 
-    padding: 2em;
+    border-right: 1px solid #a6b0b5;
+    box-shadow: 0.15em -0.1em 5px #0000001f;
+
+    padding: 4em;
 }
 
 .lecture-card {
     border: 1px solid slategrey;
     border-radius: 4px;
     background-color: whitesmoke;
-    box-shadow: 0.15em 0.15em 5px #0000002f;
+    box-shadow: 0.05em 0.05em 5px #0000002f;
 
     width: 100%;
     display: flex;
     padding: 0.5em;
+    position: relative;
 }
 
 .lecture-container {
@@ -47,4 +50,8 @@
     flex: 1;
     padding: 20px;
     width: 100%;
+}
+
+.ant-picker-range-separator span span svg {
+    fill: slategrey !important;
 }
