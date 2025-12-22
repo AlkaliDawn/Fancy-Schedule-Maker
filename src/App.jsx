@@ -1,19 +1,28 @@
 import {useState} from 'react'
-import {Button, Cascader, Checkbox, Flex, Input, InputNumber, Radio, Select, Space, TimePicker} from 'antd';
-import {FilePdfFilled, PlusOutlined} from '@ant-design/icons';
+import {
+    Button,
+    Cascader,
+    Checkbox,
+    Drawer,
+    Flex,
+    FloatButton,
+    Input,
+    InputNumber,
+    Radio,
+    Select,
+    Space, Switch,
+    TimePicker
+} from 'antd';
+import {FileImageOutlined, PlusOutlined, SettingOutlined} from '@ant-design/icons';
 
-const generateSchedule = async (lecture_data) => {
-    const response = await fetch('https://3velynnn.pythonanywhere.com/api/generate-schedule', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(lecture_data)
-    });
+import domtoimage from 'dom-to-image-more';
 
-    return await response.json();
-}
-const DAYS = Object.freeze({
+
+import './App.css'; import './render.css'
+import ScheduleComponent from './render.jsx';
+
+
+export const DAYS = Object.freeze({
     MONDAY: 1 << 0,
     TUESDAY: 1 << 1,
     WEDNESDAY: 1 << 2,
@@ -21,15 +30,121 @@ const DAYS = Object.freeze({
     FRIDAY: 1 << 4
 });
 
+function SettingsMenu({open, onClose, renderOptions, setRenderOptions}) {
+
+    const semesterOptions = [
+        {label: 'Fall', value: 'Fall'},
+        {label: 'Winter', value: 'Winter'},
+        {label: 'Spring', value: 'Spring'},
+        {label: 'Summer', value: 'Summer'}
+    ]
+
+    const paddingOptions = [
+        {label: 'No Padding', value: 0},
+        {label: '0.5 Hours', value: 0.5},
+        {label: '1 Hour', value: 1},
+        {label: '1.5 Hours', value: 1.5},
+        {label: '2 Hours', value: 2},
+        {label: '2.5 Hours', value: 2.5},
+        {label: '3 Hours', value: 3},
+        {label: '3.5 Hours', value: 3.5},
+    ]
+
+    const yearOptions = [
+        {label: '2025', value: 2025},
+        {label: '2026', value: 2026},
+        {label: '2027', value: 2027},
+        {label: '2028', value: 2028},
+        {label: '2029', value: 2029},
+        {label: '2030', value: 2030},
+        {label: '2031', value: 2031},
+    ]
+
+    const [startPadDisabled, setStartPadDisabled] = useState(true);
+    const [endPadDisabled, setEndPadDisabled] = useState(true);
+
+    return (
+        <Drawer
+            title="Settings :D"
+
+            closable={{ 'aria-label': 'Close Button' }}
+            onClose={onClose}
+            open={open}
+            style={{lineHeight: '3vh', display: 'flex', alignItems: 'center'}}
+        >
+            Choose the semester for your schedule:
+            <Radio.Group
+                block
+                options={semesterOptions}
+                optionType="button"
+                onChange={(e) => setRenderOptions({...renderOptions, semester: e.target.value})}
+                value={renderOptions.semester}
+            />
+            <br/>
+            <span> Choose the year for your schedule: </span>
+            <span><Select
+                showSearch
+                value={renderOptions.year}
+                options={yearOptions}
+                onChange={(value) => setRenderOptions({...renderOptions, year: value})}
+                style={{width:'33%'}}
+            /></span>
+            <br/><br/>
+            {/*<span> Font Weight for Class Names: </span>*/}
+            {/*<InputNumber*/}
+            {/*    min={100}*/}
+            {/*    max={900}*/}
+            {/*    step={5}*/}
+            {/*    value={renderOptions.font_weight}*/}
+            {/*    onChange={(value) => setRenderOptions({...renderOptions, font_weight: value})}*/}
+            {/*    style={{width:'33%'}}*/}
+            {/*    />*/}
+            {/*<br/><br/>*/}
+            Padding at Start of Day:
+            <br/>
+
+            <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
+                <Switch defaultValue={false} onChange={(value) => {
+                    setRenderOptions({...renderOptions, do_pad_start: value});
+                    setStartPadDisabled(!value);
+                }} />
+
+                <Select
+                    value={renderOptions.pad_start_amt}
+                    options={paddingOptions}
+                    onChange={(value) => setRenderOptions({...renderOptions, pad_start_amt: value})}
+                    style={{width:'80%'}}
+                    disabled={startPadDisabled}
+                />
+            </div>
+
+            <br/><br/>
+            Padding at End of Day:
+            <br/>
+
+            <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
+                <Switch defaultValue={false} onChange={(value) => {
+                    setRenderOptions({...renderOptions, do_pad_end: value});
+                    setEndPadDisabled(!value);
+                }} />
+
+                <Select
+                    value={renderOptions.pad_end_amt}
+                    options={paddingOptions}
+                    onChange={(value) => setRenderOptions({...renderOptions, pad_end_amt: value})}
+                    style={{width:'80%'}}
+                    disabled={endPadDisabled}
+                />
+            </div>
+
+        </Drawer>
+    )
+}
+
 function LectureCard({ lecture, onUpdate }) {
     const lectureTypeOptions = [
         { label: 'Lecture', value: 'Lecture' },
         { label: 'Tutorial', value: 'Tutorial' },
-    ];
-
-    const buildingOptions = [
-        { label: 'Isbister', value: 'ISBI' },
-        { label: "St. John's", value: 'ST. JOHNS' },
     ];
 
     const dayOptions = [
@@ -50,9 +165,6 @@ function LectureCard({ lecture, onUpdate }) {
         { label: 'Yellow', value: 'YELLOW' },
         { label: 'Blue', value: 'BLUE' },
     ];
-
-    const filter = (inputValue, path) =>
-        path.some(option => option.label.toLowerCase().includes(inputValue.toLowerCase()));
 
     const time_format = 'h:mm a';
 
@@ -92,17 +204,16 @@ function LectureCard({ lecture, onUpdate }) {
                 onChange={(e) => onUpdate({ ...lecture, class_name: e.target.value })}
             />
             <Space.Compact>
-                <Cascader
+                <Input
                     style={{ width: "66%" }}
-                    options={buildingOptions}
                     placeholder="Building"
-                    showSearch={{ filter }}
                     value={lecture.building}
-                    onChange={(value) => {
+                    onChange={(e) => {
+                        const building = e.target.value;
                         onUpdate({
                             ...lecture,
-                            building: value,
-                            class_location: value + " " + (lecture.roomNumber || '')
+                            building,
+                            class_location: building + " " + (lecture.roomNumber || '')
                         });
                     }}
                 />
@@ -111,7 +222,6 @@ function LectureCard({ lecture, onUpdate }) {
                     min={0}
                     max={10000}
                     style={{ width: "34%" }}
-                    value={lecture.roomNumber}
                     onChange={(value) => {
                         onUpdate({
                             ...lecture,
@@ -148,14 +258,6 @@ function LectureCard({ lecture, onUpdate }) {
     )
 }
 
-function Render_Schedule({ schedule_html }) {
-    if (!schedule_html) return null;
-
-    return (
-        <div dangerouslySetInnerHTML={{ __html: schedule_html }} />
-    )
-}
-
 
 function App() {
     const [lectures, setLectures] = useState([
@@ -166,7 +268,7 @@ function App() {
             building: '',
             roomNumber: 0,
             start: 0,
-            duration: 0,
+            duration: 1,
             days: 0,
             color: '',
             isLab: false
@@ -185,7 +287,7 @@ function App() {
             building: '',
             roomNumber: 0,
             start: 0,
-            duration: 0,
+            duration: 1,
             days: 0,
             color: '',
             isLab: false
@@ -193,6 +295,15 @@ function App() {
     }
 
 
+    const [open, setOpen] = useState(false);
+
+    const showDrawer = () => {
+        setOpen(true);
+    };
+
+    const onClose = () => {
+        setOpen(false);
+    };
 
     const [preview_schedule, setPreviewSchedule] = useState(null)
 
@@ -200,49 +311,59 @@ function App() {
         setLectures(lectures.map(lec =>
             lec.id === updatedLecture.id ? updatedLecture : lec
         ));
+        console.log("Updated Lecture:");
     }
 
-    const handleGenerateSchedule = async () => {
-        try {
-            const result = await generateSchedule(lectures);
-            console.log('Schedule generated and Received');
-            console.log('Result type:', typeof result);
-            console.log('Result content:', result);
-            setPreviewSchedule(result);
-        } catch (error) {
-            console.error('Error generating schedule:', error);
-        }
-    }
+    const [renderOptions, setRenderOptions] = useState({
+        pad_start_amt: 0,
+        pad_end_amt: 0,
+        do_pad_end: false,
+        do_pad_start: false,
+        semester: 'Winter',
+        year: 2026,
+        font_weight: 395,
+        schedule_width: 730,
+        show_bottom_time_labels: true,
+        time_format_24h: false,
+    });
 
-    const handleDownloadPDF = async () => {
-        const res = await fetch(
-            'https://3velynnn.pythonanywhere.com/api/retrieve_png',
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(lectures),
-            }
-        );
+    const handleDownloadPNG = async () => {
+        const node = document.getElementsByClassName('preview')[0].children[0];
+        const scale = 3;
 
-        if (!res.ok) {
-            throw new Error('Failed to download PNG');
-        }
+        const width = node.offsetWidth;
+        const height = node.offsetHeight;
 
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
+        await document.fonts.ready;
 
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'schedule.png';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-
-        setTimeout(() => URL.revokeObjectURL(url), 0);
+        domtoimage.toBlob(node, {
+            width: width * scale,
+            height: height * scale,
+            style: {
+                transform: `scale(${scale})`,
+                transformOrigin: 'top left',
+                width: `${width}px`,
+                height: `${height}px`,
+            },
+        }).then(blob => {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'my-node.png';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
     };
 
     return (
-        <div style={{ display: 'flex', height: '100vh' }}>
+        <div style={{ display: 'flex', height: '100vh', width: '100vw' }}>
+            <FloatButton
+                shape="square"
+                type="primary"
+                onClick={showDrawer}
+                style={{ insetInlineEnd: 94 }}
+                icon={<SettingOutlined />}
+            />
             <div className='sidebar' style={{ width: '400px', padding: '20px', overflowY: 'auto' }}>
                 <Flex vertical className="lecture-container" align={'center'} gap={12}>
                     {lectures.map(lecture => (
@@ -255,16 +376,17 @@ function App() {
                     <Button onClick={addLecture}>
                         Add Lecture <PlusOutlined />
                     </Button>
-                    <Button type="primary" onClick={handleGenerateSchedule}>
-                        Generate Schedule
+                    <Button type="primary" onClick={() => setPreviewSchedule(<ScheduleComponent lectures={lectures} options={renderOptions}/>)}>
+                        Preview Schedule
                     </Button>
-                    <Button onClick={handleDownloadPDF}>
-                        Download as PDF <FilePdfFilled />
+                    <Button onClick={handleDownloadPNG}>
+                        Download as PNG <FileImageOutlined />
                     </Button>
                 </Flex>
             </div>
-            <div className='preview' style={{ flex: 1, padding: '20px' }}>
-                <Render_Schedule schedule_html={preview_schedule}></Render_Schedule>
+            <SettingsMenu open={open} onClose={onClose} renderOptions={renderOptions} setRenderOptions={setRenderOptions} />
+            <div className='preview' >
+                {preview_schedule}
             </div>
         </div>
     )

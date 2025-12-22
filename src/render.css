@@ -1,0 +1,159 @@
+/*noinspection CssUnknownTarget*/
+@font-face {
+    font-family: 'Kudryashev Display';
+    src: url('/KudryashevDisplay.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/*noinspection CssUnknownTarget*/
+@font-face {
+    font-family: 'TT Norms';
+    src: url('/TTNormsProVariable.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: normal;
+}
+
+.table-wrapper {
+    display: inline-block;
+}
+
+.large-text {
+    font-family: 'Kudryashev Display', serif;
+    text-shadow: 0.9px 0.5px 1.6px #0000003f;
+    font-size: 78px;
+    text-wrap: nowrap;
+}
+
+.timetable {
+    width: 100%;
+    table-layout: fixed;
+    border-spacing: 2.3px;
+    border-collapse: separate;
+    letter-spacing: 1.23px;
+    font-family: 'TT Norms', serif;
+    font-size: 9.5pt;
+}
+
+.timetable .table-header-row th:not(:first-child) {
+    text-align: center;
+}
+
+.timetable .table-header-row th:first-child {
+    width: 12%;
+}
+
+.time-cell {
+    font-size: 10.2pt;
+    padding: 0 !important;
+    font-weight: 385;
+    letter-spacing: 1.45px;
+    line-height: 1.7;
+}
+
+.bold {
+    font-weight: 700;
+}
+
+.timetable th {
+    border: 1.3px solid #b2b2b2;
+    color: #100009;
+    background-color: #f1d7c0;
+    font-weight: 400;
+}
+
+.timetable td {
+    display: table-cell;
+    color: #100009;
+    background-color: #ffffff;
+    word-break: break-word;
+    padding: 4px;
+    height: 100%;
+    border: 1.3px solid #b2b2b2;
+    text-align: center;
+}
+
+.class-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    box-sizing: border-box;
+    font-weight: 395;
+}
+
+.top-time, .bottom-time {
+    float: right;
+}
+
+tr {
+    height: 50px;
+}
+
+.GREEN {
+    background: radial-gradient(circle at 0% 0%, #dcff98 0%, #1bbc77 100%);
+}
+
+.PINK {
+    background: radial-gradient(circle at 0% 0%, #ff6b7f 0%, #c12489 100%);
+}
+
+.PURPLE {
+    background: radial-gradient(circle at 0% 0%, #ff9ae2 0%, #8d42d7 100%);
+}
+
+.LIGHT_GREEN {
+    background: radial-gradient(circle at 0% 0%, #eeff81 0%, #5fa61a 100%);
+}
+
+.TEAL {
+    background: radial-gradient(circle at 0% 0%, #71ffbb 0%, #009ba1 100%);
+}
+
+.YELLOW {
+    background: radial-gradient(circle at 0% 0%, #e1ac70 0%, #fffd88 100%);
+}
+
+.BLUE {
+    background: radial-gradient(circle at 0% 0%, #adf1ff 0%, #2b53ff 100%);
+}
+
+#color-border {
+    background-color: #eee6db;
+    padding: 20px;
+    width: 730px;
+}
+
+#white-area {
+    background-color: #ffffff;
+    padding: 20px;
+}
+
+.page-header-row {
+    display: flex;
+    justify-content: space-between;
+    color: black;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.schedule-img {
+    max-height: 120px;
+}
+
+.empty-cell {
+    background: #ffffff;
+}
+
+.empty-cell .class-card {
+    min-height: 100%;
+}
+
+
+
+
+
+
